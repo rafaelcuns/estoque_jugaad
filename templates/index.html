@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário Maker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 16px;
+            padding-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Layout em Cards para priorizar o uso no Celular */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .img-container {
+            width: 70px;
+            height: 70px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .code {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .price {
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 0.95rem;
+        }
+
+        .quantities {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .loading, .error-msg {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+        }
+
+        .error-msg {
+            color: #dc2626;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 12px auto; /* Reduzido para aproximar do filtro */
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 16px 12px 42px; 
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            appearance: none; 
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* --- Novo: Filtro de Livros --- */
+        .filter-container {
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        /* --- Novos estilos para os botões de quantidade --- */
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            font-size: 1rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+        }
+
+        .input-wrapper input::-webkit-outer-spin-button,
+        .input-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .btn-qty {
+            background-color: #f1f5f9;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .btn-qty:hover {
+            background-color: #e2e8f0;
+            color: var(--primary);
+        }
+
+        /* --- Novo: Botão Voltar ao Topo --- */
+        .btn-topo {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none; /* Escondido por padrão */
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.2s;
+            z-index: 1000;
+        }
+
+        .btn-topo:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Inventário Maker</h1>
+    
+    <!-- Caixa de Pesquisa -->
+    <div class="search-container">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="inputBusca" placeholder="Buscar por nome ou código...">
+    </div>
+
+    <!-- Novo: Filtro de Livros -->
+    <div class="filter-container">
+        <label>
+            <input type="checkbox" id="filtroLivro">
+            Mostrar apenas tipo "Livro"
+        </label>
+    </div>
+
+    <div class="list-container" id="lista-materiais">
+        <div class="loading">Carregando materiais...</div>
+    </div>
+
+    <!-- Novo: Botão Voltar ao Topo -->
+    <button id="btnTopo" class="btn-topo" title="Voltar ao topo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+
+    <script>
+        const API_BASE_URL = '/api';
+        const container = document.getElementById('lista-materiais');
+        const inputBusca = document.getElementById('inputBusca');
+        const filtroLivro = document.getElementById('filtroLivro'); // Nova referência
+        const btnTopo = document.getElementById('btnTopo'); // Nova referência
+
+        // Variável para guardar os dados originais e não perdê-los ao filtrar
+        let materiaisOriginais = [];
+
+        // Função para buscar os dados na inicialização
+        async function fetchMateriais() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/materiais`);
+                if (!response.ok) throw new Error('Falha ao carregar os dados');
+                
+                materiaisOriginais = await response.json();
+                aplicarFiltros(); // Usa a nova função centralizada
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error-msg">Erro ao carregar o inventário.</div>`;
+                
+                // Fallback para testes
+                materiaisOriginais = [
+                    { codigo: "ARD-001", imagem: "https://via.placeholder.com/70", nome: "Arduino Nano", tipo: "Microcontrolador", qtd_sala_1302: 12, qtd_laboratorio: 5, valor: 65.50 },
+                    { codigo: "SENS-050", imagem: "https://via.placeholder.com/70", nome: "Módulo MPU-6050", tipo: "Sensor de Movimento", qtd_sala_1302: 8, qtd_laboratorio: 15, valor: 22.90 },
+                    { codigo: "LIV-001", imagem: "https://via.placeholder.com/70", nome: "Eletrônica para Makers", tipo: "Livro", qtd_sala_1302: 3, qtd_laboratorio: 1, valor: 85.00 } // Adicionado um livro de teste
+                ];
+                aplicarFiltros(); // Usa a nova função centralizada
+            }
+        }
+
+        // --- Nova: Função unificada para aplicar pesquisa e checkbox ---
+        function aplicarFiltros() {
+            const termo = inputBusca.value.toLowerCase().trim();
+            const apenasLivros = filtroLivro.checked;
+            
+            const materiaisFiltrados = materiaisOriginais.filter(mat => {
+                // Checa busca por texto
+                const atendeBusca = mat.nome.toLowerCase().includes(termo) || 
+                                    mat.codigo.toLowerCase().includes(termo);
+                
+                // Checa filtro de checkbox
+                const atendeFiltroLivro = apenasLivros ? (mat.tipo.toLowerCase() === 'livro') : true;
+                
+                return atendeBusca && atendeFiltroLivro;
+            });
+            
+            renderizarLista(materiaisFiltrados);
+        }
+
+        // Event listeners atualizados para usar a função unificada
+        inputBusca.addEventListener('input', aplicarFiltros);
+        filtroLivro.addEventListener('change', aplicarFiltros);
+
+        // --- Novo: Lógica do botão Voltar ao Topo ---
+        window.addEventListener('scroll', () => {
+            // Mostra o botão quando rolar mais de 200px
+            if (window.scrollY > 200) {
+                btnTopo.style.display = 'flex';
+            } else {
+                btnTopo.style.display = 'none';
+            }
+        });
+
+        btnTopo.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Função para renderizar os cards no HTML
+        function renderizarLista(materiais) {
+            container.innerHTML = ''; 
+            
+            // Mostra mensagem se a busca não encontrar nada
+            if (materiais.length === 0) {
+                container.innerHTML = `<div class="loading">Nenhum material encontrado.</div>`;
+                return;
+            }
+
+            materiais.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="img-container">
+                            <img src="${mat.imagem}" alt="${mat.nome}" onerror="this.src='https://via.placeholder.com/70?text=Sem+Foto'">
+                        </div>
+                        <div class="info">
+                            <h2>${mat.nome}</h2>
+                            <div class="badges"><span class="badge">${mat.tipo}</span></div>
+                            <div class="code">Cód: ${mat.codigo}</div>
+                            <div class="price">R$ ${mat.valor.toFixed(2).replace('.', ',')}</div>
+                        </div>
+                    </div>
+                    <div class="quantities">
+                        <div class="input-group">
+                            <label>Qtd. Sala 1302</label>
+                            <div class="input-wrapper">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_sala_1302', -1, this)" title="Diminuir">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <input type="number" value="${mat.qtd_sala_1302}" min="0" onchange="atualizarQuantidade('${mat.codigo}', 'qtd_sala_1302', this.value)">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_sala_1302', 1, this)" title="Aumentar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Qtd. Laboratório</label>
+                            <div class="input-wrapper">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_laboratorio', -1, this)" title="Diminuir">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <input type="number" value="${mat.qtd_laboratorio}" min="0" onchange="atualizarQuantidade('${mat.codigo}', 'qtd_laboratorio', this.value)">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_laboratorio', 1, this)" title="Aumentar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Função disparada ao alterar um input de quantidade
+        async function atualizarQuantidade(codigo, campo, novoValor) {
+            const valorNumerico = parseInt(novoValor, 10);
+            if (isNaN(valorNumerico) || valorNumerico < 0) return;
+
+            // Prepara o payload enviando apenas o campo alterado (PATCH)
+            const payload = {
+                [campo]: valorNumerico
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/materiais/${codigo}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro ao atualizar quantidade do item ${codigo}`);
+                }
+                
+                console.log(`Sucesso: ${campo} do item ${codigo} atualizado para ${valorNumerico}`);
+            } catch (error) {
+                console.error(error);
+                alert('Não foi possível salvar a alteração. Verifique sua conexão.');
+            }
+        }
+
+        // Função para manipular o clique nos botões de seta
+        function mudarQuantidade(codigo, campo, alteracao, botaoElemento) {
+            const wrapper = botaoElemento.parentElement;
+            const input = wrapper.querySelector('input');
+            
+            let valorAtual = parseInt(input.value, 10);
+            if (isNaN(valorAtual)) valorAtual = 0;
+            
+            let novoValor = valorAtual + alteracao;
+            if (novoValor < 0) novoValor = 0;
+            
+            if (novoValor !== valorAtual) {
+                input.value = novoValor;
+                atualizarQuantidade(codigo, campo, novoValor);
+            }
+        }
+
+        // Iniciar aplicação
+        fetchMateriais();
+    </script>
+</body>
+</html>
