@@ -1,5 +1,6 @@
 .env
 iniciar.bat
+db/dados.sql
 __pycache__/
 *.pyc
 *.pyo
