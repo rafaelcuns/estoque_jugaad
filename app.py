@@ -134,4 +134,4 @@ if __name__ == '__main__':
     atexit.register(lambda: zc.close())
     
     # ATENÇÃO AQUI: debug=True fará o servidor reiniciar a cada mudança
-    app.run(host='0.0.0.0', port=PORTA, debug=DEBUG_MODE)
+    app.run(host='0.0.0.0', port=PORTA, debug=DEBUG_MODE, use_reloader=False)

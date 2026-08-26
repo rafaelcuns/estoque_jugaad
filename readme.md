@@ -13,13 +13,13 @@ wjrbwejrbewor
 
     ```console
     sudo apt update
-    sudo apt install -y python3 python3-pip python3-venv git mysql-server avahi-daemon avahi-utils
+    sudo apt install -y python3 python3-pip python3-venv git mariadb-server avahi-daemon avahi-utils
     ```
 
 2. Prepare o Python
 
     ```console
-    sudo systemclt start mysql
+    sudo systemclt start mysql # nao funcionou
     sudo systemctl enable --now avahi-daemon
 
     cd ~
@@ -35,6 +35,8 @@ wjrbwejrbewor
 3. Prepare o banco de dados
 
     ```console
+    sudo systemctl enable mariadb
+
     sudo mysql -e "CREATE DATABASE IF NOT EXISTS estoque_jugaad;"
 
     sudo mysql estoque_jugaad < db/estrutura.sql
@@ -47,3 +49,38 @@ wjrbwejrbewor
 4. Execute
 
     `python3 app.py`
+
+### Iniciar ao ligar
+
+1. Crie o arquivo de serviço no Systemd
+    ```console
+    sudo nano /etc/systemd/system/estoque.service
+    ```
+
+2. Cole essas informações, mudando USUARIO para o nome de usuario do sistema
+    ```console
+    [Unit]
+    Description=Servico Flask Estoque Jugaad com mDNS
+    After=network.target network-online.target avahi-daemon.service
+    Wants=network-online.target
+
+    [Service]
+    Type=simple
+    User=USUARIO
+    WorkingDirectory=/home/USUARIO/estoque_jugaad
+    ExecStartPre=/bin/sleep 5
+    ExecStart=/home/USUARIO/estoque_jugaad/venv/bin/python /home/USUARIO/estoque_jugaad/app.py
+    Restart=always
+    RestartSec=5
+    Environment=PYTHONUNBUFFERED=1
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+3. Habilite o serviço e reinicie
+    ```console
+    sudo systemctl daemon-reload
+    sudo systemctl enable estoque.service
+    sudo systemctl start estoque.service
+    ```
