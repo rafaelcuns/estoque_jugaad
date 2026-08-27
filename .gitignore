@@ -1,6 +1,4 @@
 .env
-iniciar.bat
-interno.sh
 db/dados.sql
 __pycache__/
 *.pyc

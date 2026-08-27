@@ -3,7 +3,6 @@
 wjrbwejrbewor
 
 ## Para fazer
-- Continuar estoque jugaad no AUQ (git clone, enviar banco, rodar no startup)
 - Fazer envio de dados periódicos para o Notebook
 - Linkar com a planilha
 
@@ -32,7 +31,7 @@ wjrbwejrbewor
 
     pip install -r requirements.txt
     ```
-3. Prepare o banco de dados
+3. Prepare o banco de dados (altere o usuario e a senha)
 
     ```console
     sudo systemctl enable mariadb
@@ -46,7 +45,10 @@ wjrbwejrbewor
 
     sudo mysql -e "CREATE USER 'usuario'@'localhost' IDENTIFIED BY 'senha123'; GRANT ALL PRIVILEGES ON nome_do_banco.* TO 'usuario'@'localhost'; FLUSH PRIVILEGES;"
     ```
-4. Execute
+
+4. Renomeie o arquivo `.env.example` para apenas `.env` e altere os dados necessários (como usuario e senha do banco)
+
+5. Execute
 
     `python3 app.py`
 
