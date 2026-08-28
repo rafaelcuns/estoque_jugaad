@@ -1,6 +1,12 @@
 # Estoque rápido Equipe Jugaad
 
-wjrbwejrbewor
+Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa embarcada Arduino Uno Q para contar estoque de materiais maker de maneira facilitada.
+
+## Tecnologias
+
+- Servidor Flask com mDNS para descoberta .local na rede
+- Scripts para envio e recebimento de backups periódicos para um computador central
+- Utilização de Shell e Systemd para funcionamento na inicialização
 
 ## Para fazer
 - Fazer envio de dados periódicos para o Notebook
@@ -86,3 +92,52 @@ wjrbwejrbewor
     sudo systemctl enable estoque.service
     sudo systemctl start estoque.service
     ```
+
+### Backup para notebook periódico
+
+#### Sender (Linux)
+1. Crie o arquivo do serviço do backup com `sudo nano /etc/systemd/system/estoque_sender.service`
+
+2. Cole no arquivo a configuração (Mudando o USUARIO e o CAMINHO_DO_PROJETO para o local do repositório):
+
+    ```console
+    [Unit]
+    Description=Serviço de Backup Contínuo MySQL
+    After=network.target mariadb.service
+
+    [Service]
+    Type=simple
+    User=rafael
+    WorkingDirectory=/home/USUARIO/estoque_jugaad/scripts
+    ExecStart=/usr/bin/python3 /home/USUARIO/estoque_jugaad/scripts/sender.py
+    Restart=always
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+3. Altere o `.env` com a informação de hostname do computador para onde vai o backup. Altere também o token caso julgar necessário
+
+4. Habilite o serviço
+
+    ```console
+    sudo systemctl daemon-reload
+    sudo systemctl enable estoque_sender.service
+    sudo systemctl start estoque_sender.service
+    ```
+
+#### Receiver (Windows)
+
+1. Registre a tarefa pelo Powershell (Alterando CAMINHO)
+
+    ```console
+    Register-ScheduledTask -TaskName "MySQLBackupReceiver" -Action (New-ScheduledTaskAction -Execute (Get-Command pythonw.exe).Source -Argument '"C:\CAMINHO\receiver.py"') -Trigger (New-ScheduledTaskTrigger -AtStartup) -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)) -User "NT AUTHORITY\SYSTEM" -RunLevel Highest -Force
+    ```
+
+2. Libere no Firewall
+
+    ```console
+    New-NetFirewallRule -DisplayName "MySQL Backup Receiver (8000)" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
+    ```
+
+3. Altere no `.env` o AUTH_TOKEN
