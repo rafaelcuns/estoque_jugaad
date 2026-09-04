@@ -3,3 +3,4 @@ db/dados.sql
 __pycache__/
 *.pyc
 *.pyo
+db/backups/*.sql.gz

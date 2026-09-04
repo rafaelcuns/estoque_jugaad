@@ -8,9 +8,9 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
 - Scripts para envio e recebimento de backups periódicos para um computador central
 - Utilização de Shell e Systemd para funcionamento na inicialização
 
-## Para fazer
-- Fazer envio de dados periódicos para o Notebook
-- Linkar com a planilha
+## Status e Pendências
+- [x] Envio e recebimento periódico de backups MySQL para computador central
+- [ ] Linkar com a planilha
 
 ## Como executar em um Debian
 
@@ -21,10 +21,10 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     sudo apt install -y python3 python3-pip python3-venv git mariadb-server avahi-daemon avahi-utils
     ```
 
-2. Prepare o Python
+2. Prepare o Python e Serviços
 
     ```console
-    sudo systemclt start mysql # nao funcionou
+    sudo systemctl enable --now mariadb
     sudo systemctl enable --now avahi-daemon
 
     cd ~
@@ -93,14 +93,15 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     sudo systemctl start estoque.service
     ```
 
-### Backup para notebook periódico
+### Backup periódico para computador central (Notebook)
 
-#### Sender (Linux)
-1. Crie o arquivo do serviço do backup com `sudo nano /etc/systemd/system/estoque_sender.service`
+O sistema realiza dumps periódicos compactados em `.sql.gz` no Linux e envia automaticamente via HTTP para o computador central (Windows).
 
-2. Cole no arquivo a configuração (Mudando USUARIO):
+#### Sender (Linux / Arduino)
 
-    ```console
+1. Crie o arquivo do serviço com `sudo nano /etc/systemd/system/estoque_sender.service`:
+
+    ```ini
     [Unit]
     Description=Serviço de Backup Contínuo MySQL
     After=network.target mariadb.service
@@ -116,28 +117,65 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     [Install]
     WantedBy=multi-user.target
     ```
-3. Altere o `.env` com a informação de hostname do computador para onde vai o backup. Altere também o token caso julgar necessário
 
-4. Habilite o serviço
+2. No `.env` do Linux, configure o endereço de destino e o token:
 
-    ```console
+    ```env
+    WINDOWS_HOSTNAME=seu_notebook.local
+    WINDOWS_PORT=8000
+    AUTH_TOKEN=seu_token_secreto
+    ```
+
+3. Habilite e inicie o serviço:
+
+    ```bash
     sudo systemctl daemon-reload
     sudo systemctl enable estoque_sender.service
     sudo systemctl start estoque_sender.service
     ```
 
-#### Receiver (Windows)
+4. Para acompanhar o envio em tempo real:
 
-1. Registre a tarefa pelo Powershell (Alterando CAMINHO)
-
-    ```console
-    Register-ScheduledTask -TaskName "MySQLBackupReceiver" -Action (New-ScheduledTaskAction -Execute (Get-Command pythonw.exe).Source -Argument '"C:\CAMINHO\receiver.py"') -Trigger (New-ScheduledTaskTrigger -AtStartup) -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)) -User "NT AUTHORITY\SYSTEM" -RunLevel Highest -Force
+    ```bash
+    journalctl -u estoque_sender.service -f
     ```
 
-2. Libere no Firewall
+---
 
-    ```console
+#### Receiver (Windows)
+
+1. Instale os pacotes necessários no terminal:
+
+    ```powershell
+    pip install fastapi uvicorn python-dotenv python-multipart
+    ```
+
+2. No `.env` do Windows, garanta que o mesmo `AUTH_TOKEN` esteja definido:
+
+    ```env
+    AUTH_TOKEN=seu_token_secreto
+    ```
+
+3. Registre a inicialização automática em segundo plano (invisível via `run_receiver.vbs`):
+
+    ```powershell
+    $vbsPath = "C:\CAMINHO_DO_PROJETO\scripts\run_receiver.vbs"
+    $action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$vbsPath`""
+    $trigger = New-ScheduledTaskTrigger -AtLogOn
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+
+    Register-ScheduledTask -TaskName "MySQLBackupReceiver" -Action $action -Trigger $trigger -Settings $settings -Force
+    ```
+
+4. Libere a porta 8000 no Firewall do Windows (se ainda não liberou):
+
+    ```powershell
     New-NetFirewallRule -DisplayName "MySQL Backup Receiver (8000)" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
     ```
 
-3. Altere no `.env` o AUTH_TOKEN
+5. Iniciar e testar o receptor:
+
+    ```powershell
+    Start-ScheduledTask -TaskName "MySQLBackupReceiver"
+    Test-NetConnection -ComputerName localhost -Port 8000
+    ```

@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from pathlib import Path
 from dotenv import load_dotenv
@@ -8,6 +9,13 @@ import uvicorn
 # Resolve caminhos relativos ao local do script
 BASE_DIR = Path(__file__).resolve().parent          # Pasta onde o receiver.py está
 PARENT_DIR = BASE_DIR.parent                        # Pasta anterior (..)
+
+# Quando executado com pythonw no Windows, sys.stdout e sys.stderr sao None,
+# o que causa crash imediato no Uvicorn/FastAPI. Redirecionamos para os.devnull.
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
 
 # Carrega o .env da pasta anterior
 ENV_PATH = PARENT_DIR / ".env"
@@ -36,7 +44,9 @@ async def receive_backup(
     
     with open(destination_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-        
+
+    print("Arquivo de backup recebido")
+    
     return {"status": "sucesso", "arquivo": file.filename}
 
 if __name__ == "__main__":
