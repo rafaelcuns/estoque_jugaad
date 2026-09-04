@@ -16,15 +16,14 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
 
 1. Instalar dependências de sistema
 
-    ```console
+    ```bash
     sudo apt update
     sudo apt install -y python3 python3-pip python3-venv git mariadb-server avahi-daemon avahi-utils
     ```
 
 2. Prepare o Python e Serviços
 
-    ```console
-    sudo systemctl enable --now mariadb
+    ```bash
     sudo systemctl enable --now avahi-daemon
 
     cd ~
@@ -39,7 +38,7 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     ```
 3. Prepare o banco de dados (altere o usuario e a senha)
 
-    ```console
+    ```bash
     sudo systemctl enable mariadb
 
     sudo mysql -e "CREATE DATABASE IF NOT EXISTS estoque_jugaad;"
@@ -49,24 +48,26 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     # Importar dados caso necessário
     sudo mysql estoque_jugaad < db/dados.sql
 
-    sudo mysql -e "CREATE USER 'usuario'@'localhost' IDENTIFIED BY 'senha123'; GRANT ALL PRIVILEGES ON nome_do_banco.* TO 'usuario'@'localhost'; FLUSH PRIVILEGES;"
+    sudo mysql -e "CREATE USER 'usuario'@'localhost' IDENTIFIED BY 'senha123'; GRANT ALL PRIVILEGES ON estoque_jugaad.* TO 'usuario'@'localhost'; FLUSH PRIVILEGES;"
     ```
 
 4. Renomeie o arquivo `.env.example` para apenas `.env` e altere os dados necessários (como usuario e senha do banco)
 
 5. Execute
 
-    `python3 app.py`
+    ```bash
+    python3 app.py
+    ```
 
 ### Iniciar ao ligar
 
 1. Crie o arquivo de serviço no Systemd
-    ```console
+    ```bash
     sudo nano /etc/systemd/system/estoque.service
     ```
 
 2. Cole essas informações, mudando USUARIO para o nome de usuario do sistema
-    ```console
+    ```ini
     [Unit]
     Description=Servico Flask Estoque Jugaad com mDNS
     After=network.target network-online.target avahi-daemon.service
@@ -87,7 +88,7 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
     ```
 
 3. Habilite o serviço e reinicie
-    ```console
+    ```bash
     sudo systemctl daemon-reload
     sudo systemctl enable estoque.service
     sudo systemctl start estoque.service
