@@ -98,7 +98,7 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
 #### Sender (Linux)
 1. Crie o arquivo do serviço do backup com `sudo nano /etc/systemd/system/estoque_sender.service`
 
-2. Cole no arquivo a configuração (Mudando o USUARIO e o CAMINHO_DO_PROJETO para o local do repositório):
+2. Cole no arquivo a configuração (Mudando USUARIO):
 
     ```console
     [Unit]
@@ -107,9 +107,9 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
 
     [Service]
     Type=simple
-    User=rafael
+    User=USUARIO
     WorkingDirectory=/home/USUARIO/estoque_jugaad/scripts
-    ExecStart=/usr/bin/python3 /home/USUARIO/estoque_jugaad/scripts/sender.py
+    ExecStart=/usr/bin/python3 -u /home/USUARIO/estoque_jugaad/scripts/sender.py
     Restart=always
     RestartSec=10
 
