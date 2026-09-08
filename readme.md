@@ -96,7 +96,7 @@ Um pequeno servidor em Python com banco de dados MySQL rodando dentro da placa e
 
 ### Backup periódico para computador central (Notebook)
 
-O sistema realiza dumps periódicos compactados em `.sql.gz` no Linux e envia automaticamente via HTTP para o computador central (Windows).
+O sistema realiza dumps periódicos dos dados em `.sql` (apenas os comandos `INSERT`, sem recriar tabelas e sem compactação) no Linux e envia automaticamente via HTTP para o computador central (Windows).
 
 #### Sender (Linux / Arduino)
 

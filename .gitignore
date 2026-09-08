@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 *.pyo
 db/backups/*.sql.gz
+db/backups/*.sql

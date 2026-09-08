@@ -37,16 +37,15 @@ BACKUP_TEMP_DIR = "/tmp/mysql_backups"
 os.makedirs(BACKUP_TEMP_DIR, exist_ok=True)
 
 def generate_dump(filepath):
-    # Executa mysqldump com pipefail para capturar erros e compacta com gzip
+    # Executa mysqldump apenas com os dados (-t: no create info) e sem compactacao
     pass_arg = f"-p'{DB_PASS}'" if DB_PASS else ""
     dump_cmd = (
-        f"set -o pipefail; mysqldump -h {DB_HOST} -u {DB_USER} {pass_arg} {DB_NAME} "
-        f"| gzip > {filepath}"
+        f"mysqldump -h {DB_HOST} -u {DB_USER} {pass_arg} -t {DB_NAME} > {filepath}"
     )
     result = subprocess.run(["/bin/bash", "-c", dump_cmd], capture_output=True, text=True)
     
-    # Se falhar ou se o arquivo gerado tiver <= 25 bytes (gzip de arquivo vazio tem 20 bytes)
-    if result.returncode != 0 or (os.path.exists(filepath) and os.path.getsize(filepath) <= 25):
+    # Se falhar ou se o arquivo gerado tiver 0 bytes
+    if result.returncode != 0 or (os.path.exists(filepath) and os.path.getsize(filepath) == 0):
         err_msg = result.stderr.strip() if result.stderr else "Dump vazio gerado (0 bytes)."
         print(f"[{datetime.now()}] Falha no mysqldump (código {result.returncode}): {err_msg}", flush=True)
         if os.path.exists(filepath):
@@ -60,14 +59,15 @@ def send_file(filepath):
     headers = {"Authorization": f"Bearer {AUTH_TOKEN}"}
     
     with open(filepath, "rb") as f:
-        files = {"file": (filename, f, "application/gzip")}
+        files = {"file": (filename, f, "application/sql")}
         response = requests.post(UPLOAD_URL, headers=headers, files=files, timeout=60)
         return response.status_code == 200
 
 def main():
     while True:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dump_filename = f"backup_{DB_NAME}_{timestamp}.sql.gz"
+        custom_name = os.getenv("DUMP_FILENAME")
+        dump_filename = custom_name if custom_name else f"dados_{DB_NAME}_{timestamp}.sql"
         dump_path = os.path.join(BACKUP_TEMP_DIR, dump_filename)
         
         print(f"[{datetime.now()}] Iniciando dump do banco...", flush=True)
