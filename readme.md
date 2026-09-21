@@ -180,3 +180,15 @@ O sistema realiza dumps periódicos dos dados em `.sql` (apenas os comandos `INS
     Start-ScheduledTask -TaskName "MySQLBackupReceiver"
     Test-NetConnection -ComputerName localhost -Port 8000
     ```
+
+## Manutenção
+
+### Adicionar material
+
+Para adicionar qualquer material, acesse o terminal e execute:
+
+```SQl
+sudo mysql -u root -p estoque_jugaad -e "INSERT INTO materiais VALUES ('PXXXXX','/static/images/materiais/PXXXXX.png','MATERIAL1','Eletronico',20,0,1.90),('PXXXXX','/static/images/materiais/PXXXXX.png','MATERIAL2','Eletronico',5,0,2.90);"
+```
+
+Também adicione as imagens na pasta e faça `git pull`
