@@ -264,30 +264,199 @@
             color: var(--primary);
         }
 
-        /* --- Novo: Botão Voltar ao Topo --- */
-        .btn-topo {
+        /* --- Botões Flutuantes (Adicionar Material e Voltar ao Topo) --- */
+        .floating-actions {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background-color: var(--primary);
-            color: white;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .btn-fab {
             border: none;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            font-size: 1.2rem;
             cursor: pointer;
-            display: none; /* Escondido por padrão */
+            display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             transition: background-color 0.2s, transform 0.2s;
-            z-index: 1000;
+        }
+
+        .btn-adicionar {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .btn-adicionar:hover {
+            background-color: #15803d;
+            transform: translateY(-2px);
+        }
+
+        .btn-topo {
+            background-color: var(--primary);
+            color: white;
+            display: none; /* Escondido por padrão, exibido ao rolar */
         }
 
         .btn-topo:hover {
             background-color: #1d4ed8;
             transform: translateY(-2px);
+        }
+
+        /* --- Modal Adicionar Material --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 2000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 440px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            line-height: 1;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .btn-close:hover {
+            color: var(--text-main);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: var(--bg);
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .preview-container {
+            margin-top: 8px;
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background-color: #f1f5f9;
+        }
+
+        .preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
         }
     </style>
 </head>
@@ -316,10 +485,49 @@
         <div class="loading">Carregando materiais...</div>
     </div>
 
-    <!-- Novo: Botão Voltar ao Topo -->
-    <button id="btnTopo" class="btn-topo" title="Voltar ao topo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    </button>
+    <!-- Botões Flutuantes: Adicionar Material e Voltar ao Topo -->
+    <div class="floating-actions">
+        <button id="btnNovoMaterial" class="btn-fab btn-adicionar" title="Adicionar novo material">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+        <button id="btnTopo" class="btn-fab btn-topo" title="Voltar ao topo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+    </div>
+
+    <!-- Caixa de Diálogo (Modal) para Adicionar Novo Material -->
+    <div id="modalNovoMaterial" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Material</h2>
+                <button type="button" class="btn-close" id="btnFecharModal" aria-label="Fechar">&times;</button>
+            </div>
+            <form id="formNovoMaterial" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="novoNome">Nome</label>
+                    <input type="text" id="novoNome" name="nome" placeholder="Digite o nome do material" required>
+                </div>
+                <div class="form-group">
+                    <label for="novoCodigo">ID</label>
+                    <input type="text" id="novoCodigo" name="codigo" placeholder="Digite o ID ou código do material" required>
+                </div>
+                <div class="form-group">
+                    <label for="novaImagem">Imagem</label>
+                    <input type="file" id="novaImagem" name="imagem" accept="image/*" required>
+                    <div id="previewImagemContainer" class="preview-container" style="display: none;">
+                        <img id="previewImagem" src="" alt="Prévia">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSalvarMaterial">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
         const API_BASE_URL = '/api';
@@ -327,6 +535,89 @@
         const inputBusca = document.getElementById('inputBusca');
         const filtroLivro = document.getElementById('filtroLivro'); // Nova referência
         const btnTopo = document.getElementById('btnTopo'); // Nova referência
+
+        // Elementos do Modal de Novo Material
+        const modalNovoMaterial = document.getElementById('modalNovoMaterial');
+        const btnNovoMaterial = document.getElementById('btnNovoMaterial');
+        const btnFecharModal = document.getElementById('btnFecharModal');
+        const btnCancelarModal = document.getElementById('btnCancelarModal');
+        const formNovoMaterial = document.getElementById('formNovoMaterial');
+        const inputNovaImagem = document.getElementById('novaImagem');
+        const previewContainer = document.getElementById('previewImagemContainer');
+        const previewImagem = document.getElementById('previewImagem');
+        const btnSalvarMaterial = document.getElementById('btnSalvarMaterial');
+
+        function abrirModal() {
+            modalNovoMaterial.style.display = 'flex';
+            document.getElementById('novoNome').focus();
+        }
+
+        function fecharModal() {
+            modalNovoMaterial.style.display = 'none';
+            formNovoMaterial.reset();
+            previewContainer.style.display = 'none';
+            previewImagem.src = '';
+            btnSalvarMaterial.disabled = false;
+            btnSalvarMaterial.textContent = 'Salvar';
+        }
+
+        btnNovoMaterial.addEventListener('click', abrirModal);
+        btnFecharModal.addEventListener('click', fecharModal);
+        btnCancelarModal.addEventListener('click', fecharModal);
+
+        modalNovoMaterial.addEventListener('click', (e) => {
+            if (e.target === modalNovoMaterial) {
+                fecharModal();
+            }
+        });
+
+        // Pré-visualização da imagem selecionada
+        inputNovaImagem.addEventListener('change', () => {
+            const file = inputNovaImagem.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImagem.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                previewImagem.src = '';
+            }
+        });
+
+        // Envio do formulário com FormData
+        formNovoMaterial.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            btnSalvarMaterial.disabled = true;
+            btnSalvarMaterial.textContent = 'Salvando...';
+
+            const formData = new FormData(formNovoMaterial);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/materiais`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.erro || 'Falha ao salvar material');
+                }
+
+                alert('Material adicionado com sucesso!');
+                fecharModal();
+                await fetchMateriais();
+            } catch (err) {
+                console.error(err);
+                alert(`Erro: ${err.message}`);
+                btnSalvarMaterial.disabled = false;
+                btnSalvarMaterial.textContent = 'Salvar';
+            }
+        });
 
         // Variável para guardar os dados originais e não perdê-los ao filtrar
         let materiaisOriginais = [];
