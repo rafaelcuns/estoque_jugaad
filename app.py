@@ -59,7 +59,13 @@ def get_materiais():
 def add_material():
     nome = request.form.get('nome', '').strip()
     codigo = (request.form.get('codigo') or request.form.get('id', '')).strip()
-    tipo = request.form.get('tipo', 'Geral').strip() or 'Geral'
+    tipo = 'Eletronico'
+
+    valor_str = request.form.get('valor', '0').strip().replace(',', '.')
+    try:
+        valor = float(valor_str) if valor_str else 0.0
+    except ValueError:
+        valor = 0.0
 
     if not nome or not codigo:
         return jsonify({'erro': 'Nome e ID são obrigatórios'}), 400
@@ -89,10 +95,10 @@ def add_material():
             INSERT INTO materiais (codigo, nome, imagem, tipo, qtd_sala_1302, qtd_laboratorio, valor)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(query, (codigo, nome, caminho_db, tipo, 0, 0, 0.0))
+        cursor.execute(query, (codigo, nome, caminho_db, tipo, 0, 0, valor))
         conn.commit()
 
-        print(f"[NOVO MATERIAL] Inserido com sucesso: {codigo} - {nome} ({caminho_db})")
+        print(f"[NOVO MATERIAL] Inserido com sucesso: {codigo} - {nome} ({caminho_db}) - R$ {valor:.2f} - {tipo}")
         return jsonify({
             'mensagem': 'Material adicionado com sucesso',
             'material': {
@@ -102,7 +108,7 @@ def add_material():
                 'tipo': tipo,
                 'qtd_sala_1302': 0,
                 'qtd_laboratorio': 0,
-                'valor': 0.0
+                'valor': valor
             }
         }), 201
 
