@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário Maker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 16px;
+            padding-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .img-container {
+            width: 70px;
+            height: 70px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .code {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .price {
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 0.95rem;
+        }
+
+        .quantities {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            font-size: 1rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+        }
+
+        .input-wrapper input::-webkit-outer-spin-button,
+        .input-wrapper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .btn-qty {
+            background-color: #f1f5f9;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .btn-qty:hover {
+            background-color: #e2e8f0;
+            color: var(--primary);
+        }
+
+        .loading, .error-msg {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+        }
+
+        .error-msg {
+            color: #dc2626;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 12px auto;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 16px 12px 42px; 
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            appearance: none; 
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .filter-container {
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .floating-actions {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .btn-fab {
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn-adicionar {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .btn-adicionar:hover {
+            background-color: #15803d;
+            transform: translateY(-2px);
+        }
+
+        .btn-topo {
+            background-color: var(--primary);
+            color: white;
+            display: none;
+        }
+
+        .btn-topo:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 2000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 440px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            line-height: 1;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .btn-close:hover {
+            color: var(--text-main);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: var(--bg);
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .preview-container {
+            margin-top: 8px;
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background-color: #f1f5f9;
+        }
+
+        .preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Inventário Maker 📦</h1>
+    
+    <div class="search-container">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="inputBusca" placeholder="Buscar por nome ou código...">
+    </div>
+
+    <div class="filter-container">
+        <label>
+            <input type="checkbox" id="filtroLivro">
+            Mostrar apenas tipo "Livro" 📚
+        </label>
+    </div>
+
+    <div class="list-container" id="lista-materiais">
+        <div class="loading">Carregando materiais do Firebase... ⏳</div>
+    </div>
+
+    <div class="floating-actions">
+        <button id="btnNovoMaterial" class="btn-fab btn-adicionar" title="Adicionar novo material">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+        <button id="btnTopo" class="btn-fab btn-topo" title="Voltar ao topo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+    </div>
+
+    <div id="modalNovoMaterial" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Material ✨</h2>
+                <button type="button" class="btn-close" id="btnFecharModal" aria-label="Fechar">&times;</button>
+            </div>
+            <form id="formNovoMaterial">
+                <div class="form-group">
+                    <label for="novoNome">Nome</label>
+                    <input type="text" id="novoNome" name="nome" placeholder="Digite o nome do material" required>
+                </div>
+                <div class="form-group">
+                    <label for="novoCodigo">ID / Código</label>
+                    <input type="text" id="novoCodigo" name="codigo" placeholder="Digite o ID ou código do material" required>
+                </div>
+                <div class="form-group">
+                    <label for="novoTipo">Tipo / Categoria</label>
+                    <input type="text" id="novoTipo" name="tipo" placeholder="Ex: Microcontrolador, Livro, Sensor" required>
+                </div>
+                <div class="form-group">
+                    <label for="novoValor">Valor (R$)</label>
+                    <input type="number" id="novoValor" name="valor" step="0.01" min="0" placeholder="Ex: 12.50" required>
+                </div>
+                <div class="form-group">
+                    <label for="novaImagem">Imagem</label>
+                    <input type="file" id="novaImagem" name="imagem" accept="image/*" required>
+                    <div id="previewImagemContainer" class="preview-container" style="display: none;">
+                        <img id="previewImagem" src="" alt="Prévia">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSalvarMaterial">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            updateDoc, 
+            getDocs 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // ⚙️ Suas credenciais do Firebase (apenas Firestore)
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Elementos DOM
+        const container = document.getElementById('lista-materiais');
+        const inputBusca = document.getElementById('inputBusca');
+        const filtroLivro = document.getElementById('filtroLivro');
+        const btnTopo = document.getElementById('btnTopo');
+
+        const modalNovoMaterial = document.getElementById('modalNovoMaterial');
+        const btnNovoMaterial = document.getElementById('btnNovoMaterial');
+        const btnFecharModal = document.getElementById('btnFecharModal');
+        const btnCancelarModal = document.getElementById('btnCancelarModal');
+        const formNovoMaterial = document.getElementById('formNovoMaterial');
+        const inputNovaImagem = document.getElementById('novaImagem');
+        const previewContainer = document.getElementById('previewImagemContainer');
+        const previewImagem = document.getElementById('previewImagem');
+        const btnSalvarMaterial = document.getElementById('btnSalvarMaterial');
+
+        let materiaisOriginais = [];
+
+        // Função para redimensionar e comprimir imagem antes de converter para Base64
+        function comprimirImagem(file, maxWidth = 300, maxHeight = 300, qualidade = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Gera o Base64 comprimido em formato JPEG (~20KB a 40KB)
+                        const dataUrl = canvas.toDataURL('image/jpeg', qualidade);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        }
+
+        // Modal
+        function abrirModal() {
+            modalNovoMaterial.style.display = 'flex';
+            document.getElementById('novoNome').focus();
+        }
+
+        function fecharModal() {
+            modalNovoMaterial.style.display = 'none';
+            formNovoMaterial.reset();
+            previewContainer.style.display = 'none';
+            previewImagem.src = '';
+            btnSalvarMaterial.disabled = false;
+            btnSalvarMaterial.textContent = 'Salvar';
+        }
+
+        btnNovoMaterial.addEventListener('click', abrirModal);
+        btnFecharModal.addEventListener('click', fecharModal);
+        btnCancelarModal.addEventListener('click', fecharModal);
+
+        modalNovoMaterial.addEventListener('click', (e) => {
+            if (e.target === modalNovoMaterial) fecharModal();
+        });
+
+        // Pré-visualização da imagem
+        inputNovaImagem.addEventListener('change', () => {
+            const file = inputNovaImagem.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImagem.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                previewImagem.src = '';
+            }
+        });
+
+        // Salvar Material (Sem Storage, direto no Firestore)
+        formNovoMaterial.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            btnSalvarMaterial.disabled = true;
+            btnSalvarMaterial.textContent = 'Otimizando e salvando...';
+
+            const nome = document.getElementById('novoNome').value.trim();
+            const codigo = document.getElementById('novoCodigo').value.trim().toUpperCase();
+            const tipo = document.getElementById('novoTipo').value.trim();
+            const valor = parseFloat(document.getElementById('novoValor').value) || 0;
+            const file = inputNovaImagem.files[0];
+
+            try {
+                // Comprime e converte para Base64 leve
+                let fotoBase64 = 'https://via.placeholder.com/70?text=Sem+Foto';
+                if (file) {
+                    fotoBase64 = await comprimirImagem(file, 300, 300, 0.7);
+                }
+
+                // Salva diretamente o documento com a imagem embutida
+                const docRef = doc(db, 'materiais', codigo);
+                const novoItem = {
+                    codigo: codigo,
+                    nome: nome,
+                    tipo: tipo,
+                    valor: valor,
+                    imagem: fotoBase64,
+                    qtd_sala_1302: 0,
+                    qtd_laboratorio: 0,
+                    atualizadoEm: new Date().toISOString()
+                };
+
+                await setDoc(docRef, novoItem);
+
+                alert('Material adicionado com sucesso! 🎉');
+                fecharModal();
+                await fetchMateriais();
+            } catch (err) {
+                console.error("Erro ao salvar:", err);
+                alert(`Erro ao salvar material: ${err.message}`);
+                btnSalvarMaterial.disabled = false;
+                btnSalvarMaterial.textContent = 'Salvar';
+            }
+        });
+
+        // Buscar Materiais
+        async function fetchMateriais() {
+            try {
+                const snapshot = await getDocs(collection(db, 'materiais'));
+                materiaisOriginais = [];
+
+                snapshot.forEach((docSnapshot) => {
+                    materiaisOriginais.push(docSnapshot.data());
+                });
+
+                aplicarFiltros();
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+                container.innerHTML = `<div class="error-msg">Erro ao carregar o inventário do Firebase. ⚠️</div>`;
+            }
+        }
+
+        // Filtros
+        function aplicarFiltros() {
+            const termo = inputBusca.value.toLowerCase().trim();
+            const apenasLivros = filtroLivro.checked;
+
+            const materiaisFiltrados = materiaisOriginais.filter(mat => {
+                const nomeMatch = (mat.nome || '').toLowerCase().includes(termo);
+                const codigoMatch = (mat.codigo || '').toLowerCase().includes(termo);
+                const atendeBusca = nomeMatch || codigoMatch;
+
+                const atendeFiltroLivro = apenasLivros ? ((mat.tipo || '').toLowerCase() === 'livro') : true;
+
+                return atendeBusca && atendeFiltroLivro;
+            });
+
+            renderizarLista(materiaisFiltrados);
+        }
+
+        inputBusca.addEventListener('input', aplicarFiltros);
+        filtroLivro.addEventListener('change', aplicarFiltros);
+
+        // Voltar ao topo
+        window.addEventListener('scroll', () => {
+            btnTopo.style.display = window.scrollY > 200 ? 'flex' : 'none';
+        });
+
+        btnTopo.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Atualizar Quantidade
+        window.atualizarQuantidade = async function(codigo, campo, novoValor) {
+            const valorNumerico = parseInt(novoValor, 10);
+            if (isNaN(valorNumerico) || valorNumerico < 0) return;
+
+            try {
+                const docRef = doc(db, 'materiais', codigo);
+                
+                await updateDoc(docRef, {
+                    [campo]: valorNumerico,
+                    atualizadoEm: new Date().toISOString()
+                });
+
+                const itemLocal = materiaisOriginais.find(m => m.codigo === codigo);
+                if (itemLocal) itemLocal[campo] = valorNumerico;
+
+                console.log(`✅ [Firebase] ${campo} do item ${codigo} atualizado para ${valorNumerico}`);
+            } catch (error) {
+                console.error("Erro na atualização:", error);
+                alert('Não foi possível salvar no Firebase. Verifique a conexão.');
+            }
+        };
+
+        window.mudarQuantidade = function(codigo, campo, alteracao, botaoElemento) {
+            const wrapper = botaoElemento.parentElement;
+            const input = wrapper.querySelector('input');
+
+            let valorAtual = parseInt(input.value, 10);
+            if (isNaN(valorAtual)) valorAtual = 0;
+
+            let novoValor = valorAtual + alteracao;
+            if (novoValor < 0) novoValor = 0;
+
+            if (novoValor !== valorAtual) {
+                input.value = novoValor;
+                window.atualizarQuantidade(codigo, campo, novoValor);
+            }
+        };
+
+        // Renderização
+        function renderizarLista(materiais) {
+            container.innerHTML = '';
+
+            if (materiais.length === 0) {
+                container.innerHTML = `<div class="loading">Nenhum material encontrado. 🔍</div>`;
+                return;
+            }
+
+            materiais.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="img-container">
+                            <img src="${mat.imagem}" alt="${mat.nome}" onerror="this.src='https://via.placeholder.com/70?text=Sem+Foto'">
+                        </div>
+                        <div class="info">
+                            <h2>${mat.nome}</h2>
+                            <div class="badges"><span class="badge">${mat.tipo || 'Geral'}</span></div>
+                            <div class="code">Cód: ${mat.codigo}</div>
+                            <div class="price">R$ ${Number(mat.valor || 0).toFixed(2).replace('.', ',')}</div>
+                        </div>
+                    </div>
+                    <div class="quantities">
+                        <div class="input-group">
+                            <label>Qtd. Sala 1302</label>
+                            <div class="input-wrapper">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_sala_1302', -1, this)" title="Diminuir">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <input type="number" value="${mat.qtd_sala_1302 ?? 0}" min="0" onchange="atualizarQuantidade('${mat.codigo}', 'qtd_sala_1302', this.value)">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_sala_1302', 1, this)" title="Aumentar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Qtd. Laboratório</label>
+                            <div class="input-wrapper">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_laboratorio', -1, this)" title="Diminuir">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <input type="number" value="${mat.qtd_laboratorio ?? 0}" min="0" onchange="atualizarQuantidade('${mat.codigo}', 'qtd_laboratorio', this.value)">
+                                <button class="btn-qty" onclick="mudarQuantidade('${mat.codigo}', 'qtd_laboratorio', 1, this)" title="Aumentar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchMateriais();
+    </script>
+</body>
+</html>
